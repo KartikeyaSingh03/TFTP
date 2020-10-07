@@ -1,5 +1,18 @@
 #include "tftp.h"
-#define HUMAM "humamxt"
+
+
+char* error_codes[8] = {
+	"Not Defined",
+	"File not found",
+	"Access violation",
+	"Disk full or allocation exceeded",
+	"Illegal TFTP operation",
+	"Unknown transfer ID",
+	"File already exists",
+	"No such user"
+};
+
+
 
 int main(int argc,char* argv[]){
     // char* pack = construct_data_packet("35","Hello World!");
