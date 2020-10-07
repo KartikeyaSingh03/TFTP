@@ -1,7 +1,7 @@
 CXX = gcc
 
-common = construct_packets.c
-flags =
+common = constructPackets.c decodePackets.c
+flags = -g
 
 default: all
 

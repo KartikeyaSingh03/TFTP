@@ -23,9 +23,6 @@
 #define MODE_OCTET    "octet"
 #define MODE_MAIL     "mail"
 
-
-
-
 struct read_req_packet{
     char opcode[2];    
     char* file_name;
@@ -39,19 +36,19 @@ struct write_req_packet{
 };
 
 struct data_packet{
-    char opcode[2];
-    char block_number[2];
+    char opcode[3];
+    char block_number[3];
     char data[512];
 };
 
 struct ack_packet{
-    char opcode[2];
+    char opcode[3];
     char block_number[2];
 };
 
 struct error_packet{
-    char opcode[2];
-    char error_code[1];
+    char opcode[3];
+    char error_code[3];
     char* error_msg;
 };
 
@@ -61,9 +58,10 @@ char* construct_write_packet(char* file_name,char* mode);
 char* construct_data_packet(char* block_number,char* data);
 char* construct_ack_packet(char* block_number);
 char* construct_err_packet(char* error_code,char* error_msg);
-
-
-
-
+struct read_req_packet decode_read_packet(char* packet);
+struct write_req_packet decode_write_packet(char* packet);
+struct data_packet decode_data_packet(char* packet);
+struct ack_packet decode_ack_packet(char* packet);
+struct error_packet decode_error_packet(char* packet);
 
 #endif

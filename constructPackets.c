@@ -1,20 +1,20 @@
 #include "tftp.h"
 
 char* construct_read_packet(char* file_name,char* mode){
-    int packet_size = 2 + sizeof(file_name) + 1 + sizeof(mode) + 1;
+    int packet_size = 2 + strlen(file_name) + 1 + strlen(mode) + 1;
     char* packet = (char*)malloc(packet_size);
     strcpy(packet,OPCODE_RRQ);
     strcat(packet,file_name);
-    strcpy(packet+sizeof(packet)+2,mode);
+    strcpy(packet+strlen(packet)+1,mode);
     return packet;
 } 
 
 char* construct_write_packet(char* file_name,char* mode){
-    int packet_size = 2 + sizeof(file_name) + 1 + sizeof(mode) + 1;
+    int packet_size = 2 + strlen(file_name) + 1 + strlen(mode) + 1;
     char* packet = (char*)malloc(packet_size);
     strcpy(packet,OPCODE_WRQ);
     strcat(packet,file_name);
-    strcpy(packet+sizeof(packet)+2,mode);
+    strcpy(packet+strlen(packet)+1,mode);
     return packet;
 }  
 
