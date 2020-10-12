@@ -11,27 +11,61 @@ char* error_codes[8] = {
 	"No such user"
 };
 
+void error(char *msg)
+{
+	perror(msg);
+	exit(0);
+}
+
 int main(int argc,char* argv[]){
-  
-    char* pack = construct_read_packet("12345678.rnd",MODE_NETASCII);
-    struct read_req_packet data = decode_read_packet(pack);
-    printf("%s\n%s\n%s\n\n",data.opcode,data.file_name,data.mode);
+	if(argc != 3){
+		printf("Incorrect Format\nCorrect Format: ./client <ip_addr> <port_no>\n");
+		exit(1);
+	}
 
-    char* writePack = construct_write_packet("hello.txt",MODE_OCTET);
-	struct write_req_packet write_pack = decode_write_packet(writePack);
-	printf("%s\n%s\n%s\n\n",write_pack.opcode,write_pack.file_name,write_pack.mode);  
+	int sock, length, n;
+	struct sockaddr_in server, from;
+	struct hostent *hp;
+	struct in_addr addr;
 
-	char* packData = construct_data_packet("35","Hi I am Kartikeya Singh.");
-    struct data_packet data_data = decode_data_packet(packData);
-    printf("%s\n%s\n%s\n\n",data_data.opcode,data_data.block_number,data_data.data);
+	sock= socket(AF_INET, SOCK_DGRAM, 0);
+	if(sock<0)
+	{
+		error("socket");
+	}
 
-	char* ackPack = construct_ack_packet("15");
-	struct ack_packet ack = decode_ack_packet(ackPack);
-	printf("%s\n%s\n\n",ack.opcode,ack.block_number);
+	server.sin_family =AF_INET;
+	inet_aton(argv[1],&addr);
+	hp=gethostbyaddr(&addr,sizeof(addr),AF_INET);
 
-	char* errPack = construct_err_packet("01",error_codes[1]);
-	struct error_packet err = decode_error_packet(errPack);
-	printf("%s\n%s\n%s\n\n",err.opcode,err.error_code,err.error_msg);
+	if(hp==0)
+	{
+		error("Unknown Host");
+	}
 
-    return 0;
+	bcopy((char *)hp->h_addr,(char *)&server.sin_addr,hp->h_length);
+	server.sin_port = htons(atoi(argv[2]));
+	length=sizeof(struct sockaddr_in);
+
+	char* read_pack;
+	int read_len = construct_read_packet(&read_pack,"12345678.rnd",MODE_NETASCII);
+	n=sendto(sock,read_pack,read_len,0,&server,length);
+
+	char* write_pack;
+	int write_len = construct_write_packet(&write_pack,"hello.txt",MODE_OCTET);
+	n=sendto(sock,write_pack,write_len,0,&server,length);
+
+	char* data_pack;
+	int data_len = construct_data_packet(&data_pack,"35","Hi I am Kartikeya Singh.");
+	n=sendto(sock,data_pack,data_len,0,&server,length);
+
+	char* ack_pack;
+	int ack_len = construct_ack_packet(&ack_pack,"15");
+	n=sendto(sock,ack_pack,ack_len,0,&server,length);
+
+	char* err_pack;
+	int err_len = construct_err_packet(&err_pack,"01",error_codes[1]);
+	n=sendto(sock,err_pack,err_len,0,&server,length);
+
+	return 0;
 }

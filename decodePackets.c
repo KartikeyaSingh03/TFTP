@@ -1,5 +1,7 @@
 #include "tftp.h"
 
+
+
 struct read_req_packet decode_read_packet(char* packet){
     int i = 2;
     int n = strlen(packet);
@@ -59,6 +61,7 @@ struct ack_packet decode_ack_packet(char* packet){
     strcpy(data.opcode,"04");
     data.block_number[0] = packet[2];
     data.block_number[1] = packet[3];
+    data.block_number[2] = '\0';
     return data; 
 }
 

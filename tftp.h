@@ -23,6 +23,8 @@
 #define MODE_OCTET    "octet"
 #define MODE_MAIL     "mail"
 
+enum connection_type {GET,PUT};
+
 struct read_req_packet{
     char opcode[2];    
     char* file_name;
@@ -43,7 +45,7 @@ struct data_packet{
 
 struct ack_packet{
     char opcode[3];
-    char block_number[2];
+    char block_number[3];
 };
 
 struct error_packet{
@@ -52,12 +54,17 @@ struct error_packet{
     char* error_msg;
 };
 
+struct connection{
+    enum connection_type type;
+    int socket;
+    FILE* fp;    
+};
 
-char* construct_read_packet(char* file_name,char* mode);
-char* construct_write_packet(char* file_name,char* mode);
-char* construct_data_packet(char* block_number,char* data);
-char* construct_ack_packet(char* block_number);
-char* construct_err_packet(char* error_code,char* error_msg);
+int construct_read_packet(char** packet,char* file_name,char* mode);
+int construct_write_packet(char** packet,char* file_name,char* mode);
+int construct_data_packet(char** packet,char* block_number,char* data);
+int construct_ack_packet(char** packet,char* block_number);
+int construct_err_packet(char** packet,char* error_code,char* error_msg);
 struct read_req_packet decode_read_packet(char* packet);
 struct write_req_packet decode_write_packet(char* packet);
 struct data_packet decode_data_packet(char* packet);
