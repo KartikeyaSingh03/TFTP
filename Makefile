@@ -1,6 +1,6 @@
 CXX = gcc
 
-common = constructPackets.c decodePackets.c
+common = constructPackets.c decodePackets.c transferFile.c
 flags = -g
 
 default: all

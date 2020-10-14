@@ -23,6 +23,8 @@
 #define MODE_OCTET    "octet"
 #define MODE_MAIL     "mail"
 
+#define BUF_SIZE 1024 
+
 enum connection_type {GET,PUT};
 
 struct read_req_packet{
@@ -60,6 +62,8 @@ struct connection{
     FILE* fp;    
 };
 
+void sendFile(int sock,struct sockaddr_in* sender,struct sockaddr_in* reciever,const char* file_name);
+void recieveFile(int sock,struct sockaddr_in* sender,const char* file_name);
 int construct_read_packet(char** packet,char* file_name,char* mode);
 int construct_write_packet(char** packet,char* file_name,char* mode);
 int construct_data_packet(char** packet,char* block_number,char* data);
