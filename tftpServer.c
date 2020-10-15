@@ -18,32 +18,28 @@ void error(char *msg)
 }
 
 int main(int argc,char* argv[]){
-    int sock, length, n;
-	struct sockaddr_in server;
-	struct sockaddr_in client;
-    char buf[BUF_SIZE];
-
-	if (argc < 2)
+    if (argc < 2)
 	{
 		fprintf(stderr, "ERROR, no port provided\n");
 		exit(0);
 	}
+	char buf[BUF_SIZE];
 
+	int sock;
+	struct sockaddr_in server,client;
+    
 	sock=socket(AF_INET, SOCK_DGRAM, 0);
-
 	if (sock < 0)
 	{
 		error("Opening socket");
 	}
 
-	length = sizeof(server);
+	int length = sizeof(server);
 	bzero(&server,length);
-
 
 	server.sin_family=AF_INET;
 	server.sin_addr.s_addr=INADDR_ANY;
 	server.sin_port=htons(atoi(argv[1]));
-
 
 	if (bind(sock,(struct sockaddr *)&server,length)<0)
 	{
@@ -51,8 +47,8 @@ int main(int argc,char* argv[]){
 	}
 
     while(1){
-        bzero(&buf,length);
-		n = recvfrom(sock,buf,BUF_SIZE,0,(struct sockaddr *)&client,&length);
+        bzero(buf,BUF_SIZE);
+		int n = recvfrom(sock,buf,BUF_SIZE,0,(struct sockaddr *)&client,&length);
 		if (n < 0)
 		{
 			error("recvfrom Error");
@@ -79,5 +75,7 @@ int main(int argc,char* argv[]){
         else{
             printf("%s\n","RRQ/WRQ must be sent before data transfer.\n");
         }
-    } 
+    }
+
+	return 0;  
 }

@@ -25,7 +25,7 @@ int main(int argc,char* argv[]){
 	}
 	char buf[BUF_SIZE];
 
-	int sock, length, n;
+	int sock;
 	struct sockaddr_in server, client;
 	struct hostent *hp;
 	struct in_addr addr;
@@ -37,7 +37,7 @@ int main(int argc,char* argv[]){
 		error("socket");
 	}
 
-	server.sin_family =AF_INET;
+	server.sin_family = AF_INET;
 	inet_aton(argv[1],&addr);
 	hp=gethostbyaddr(&addr,sizeof(addr),AF_INET);
 
@@ -48,18 +48,22 @@ int main(int argc,char* argv[]){
 
 	bcopy((char *)hp->h_addr,(char *)&server.sin_addr,hp->h_length);
 	server.sin_port = htons(atoi(argv[2]));
-	length=sizeof(struct sockaddr_in);
+	
+	int length=sizeof(struct sockaddr_in);
 
 	if(strcmp("-g",argv[3]) == 0){
 		char* read_pack;
 		int read_len = construct_read_packet(&read_pack,argv[4],MODE_NETASCII);
-		n = sendto(sock,read_pack,read_len,0,&server,length);
-		recieveFile(sock,&client,"client_rec.txt");
+		int n = sendto(sock,read_pack,read_len,0,&server,length);
+		//char file_name[100];
+		//strcpy(file_name,"client_");
+		//strcat(file_name,argv[4]);
+		recieveFile(sock,&client,"client.txt");
 	}
 	else if(strcmp("-p",argv[3]) == 0){
 		char* write_pack;
 		int write_len = construct_write_packet(&write_pack,argv[4],MODE_NETASCII);
-		n = sendto(sock,write_pack,write_len,0,&server,length);
+		int n = sendto(sock,write_pack,write_len,0,&server,length);
 		bzero(buf,BUF_SIZE);
 		n = recvfrom(sock,buf,BUF_SIZE,0,(struct sockaddr *)&client,&length);
 		if (n < 0)
@@ -75,22 +79,6 @@ int main(int argc,char* argv[]){
 		printf("Incorrect Options. Use -g for GET and -p for PUT\n");
 		exit(1);
 	}
-
-	// char* read_pack;
-	// int read_len = construct_read_packet(&read_pack,"12345678.rnd",MODE_NETASCII);
-	// n=sendto(sock,read_pack,read_len,0,&server,length);
-
-	// char* write_pack;
-	// int write_len = construct_write_packet(&write_pack,"hello.txt",MODE_OCTET);
-	// n=sendto(sock,write_pack,write_len,0,&server,length);
-
-	// char* data_pack;
-	// int data_len = construct_data_packet(&data_pack,"35","Hi I am Kartikeya Singh.");
-	// n=sendto(sock,data_pack,data_len,0,&server,length);
-
-	// char* ack_pack;
-	// int ack_len = construct_ack_packet(&ack_pack,"15");
-	// n=sendto(sock,ack_pack,ack_len,0,&server,length);
 
 	// char* err_pack;
 	// int err_len = construct_err_packet(&err_pack,"01",error_codes[1]);
