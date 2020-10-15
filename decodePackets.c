@@ -1,7 +1,5 @@
 #include "tftp.h"
 
-
-
 struct read_req_packet decode_read_packet(char* packet){
     int i = 2;
     int n = strlen(packet);

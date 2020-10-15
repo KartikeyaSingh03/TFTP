@@ -11,17 +11,11 @@ char* error_codes[8] = {
 	"No such user"
 };
 
-void error(char *msg)
-{
-	perror(msg);
-	exit(0);
-}
-
 int main(int argc,char* argv[]){
     if (argc < 2)
 	{
 		fprintf(stderr, "ERROR, no port provided\n");
-		exit(0);
+		exit(1);
 	}
 	char buf[BUF_SIZE];
 
@@ -31,7 +25,8 @@ int main(int argc,char* argv[]){
 	sock=socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0)
 	{
-		error("Opening socket");
+		printf("Error while opening socket\n");
+		exit(1);
 	}
 
 	int length = sizeof(server);
@@ -43,7 +38,8 @@ int main(int argc,char* argv[]){
 
 	if (bind(sock,(struct sockaddr *)&server,length)<0)
 	{
-		error("binding");
+		printf("Binding Error.\n");
+		exit(1);
 	}
 
     while(1){
@@ -51,7 +47,8 @@ int main(int argc,char* argv[]){
 		int n = recvfrom(sock,buf,BUF_SIZE,0,(struct sockaddr *)&client,&length);
 		if (n < 0)
 		{
-			error("recvfrom Error");
+			printf("recvfrom Error");
+			exit(1);
 		}
 
         char opcode[3];
@@ -61,16 +58,46 @@ int main(int argc,char* argv[]){
         if(strcmp(opcode,"01") == 0){
 			struct read_req_packet read_pack = decode_read_packet(buf);
 			printf("Recieved RRQ for file: %s\n",read_pack.file_name);
-			sendFile(sock,&server,&client,read_pack.file_name);
+			if(access(read_pack.file_name,F_OK) == -1){
+				char* err_pack;
+				int err_len = construct_err_packet(&err_pack,"01",error_codes[1]);
+				n=sendto(sock,err_pack,err_len,0,(struct sockaddr*)&client,length);
+				free(err_pack);
+			}
+			else if(access(read_pack.file_name,R_OK) == -1){
+				char* err_pack;
+				int err_len = construct_err_packet(&err_pack,"02",error_codes[2]);
+				n=sendto(sock,err_pack,err_len,0,(struct sockaddr*)&client,length);
+				free(err_pack);					
+			}
+			else{
+				sendFile(sock,&server,&client,read_pack.file_name);
+			}
+			free(read_pack.file_name);
+			free(read_pack.mode);
         }
         else if(strcmp(opcode,"02") == 0){
             struct write_req_packet write_pack = decode_write_packet(buf);
 	        printf("Recieved WRQ for file: %s\n",write_pack.file_name);
-			bzero(buf,BUF_SIZE);
-			char* ack_pack;
-			int ack_len = construct_ack_packet(&ack_pack,"00");
-			n=sendto(sock,ack_pack,ack_len,0,&client,length);
-			recieveFile(sock,&server,"received.txt");
+			if(access(write_pack.file_name,F_OK) != -1){
+				char* err_pack;
+				int err_len = construct_err_packet(&err_pack,"06",error_codes[6]);
+				n=sendto(sock,err_pack,err_len,0,(struct sockaddr*)&client,length);
+				free(err_pack);
+			}
+			else{
+				bzero(buf,BUF_SIZE);
+				char* ack_pack;
+				int ack_len = construct_ack_packet(&ack_pack,"00");
+				n=sendto(sock,ack_pack,ack_len,0,(struct sockaddr*)&client,length);
+				free(ack_pack);
+				char file_name[100];
+				strcpy(file_name,"PUT_");
+				strcat(file_name,write_pack.file_name);
+				recieveFile(sock,&server,file_name);
+			}
+			free(write_pack.file_name);
+			free(write_pack.mode);
         }
         else{
             printf("%s\n","RRQ/WRQ must be sent before data transfer.\n");
