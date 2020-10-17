@@ -4,8 +4,8 @@ To Run the project follow below given steps:
 
 1. Run this command : make clean
 2. Run this command : make
-3. To start the server run this command in terminal : ./server <Port-number>
-4. To start the client open a separate terminal and run : ./client 127.0.0.1 <Port-Number> [-g/-p] <File-name>
+3. To start the server run this command in terminal : ./server [Port-number]
+4. To start the client open a separate terminal and run : ./client 127.0.0.1 [Port-Number] [-g/-p] [File-name]
 
 NOTE : Use port number greater than 1024 because port number smaller than 1024 are fixed for special application services.
 
