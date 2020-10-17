@@ -1,6 +1,17 @@
+/*
+
+  This file contains functions to construct 5 different types of 
+  TFTP Packets according to format given in RFC 1350
+
+*/
+
+
 #include "tftp.h"
 
-int construct_read_packet(char** packet,char* file_name,char* mode){
+
+//Construct Read Request Packet
+int construct_read_packet(char** packet,char* file_name,char* mode)
+{
     int packet_size = 2 + strlen(file_name) + 1 + strlen(mode) + 1;
     *packet = (char*)malloc(packet_size);
     strcpy(*packet,OPCODE_RRQ);
@@ -9,7 +20,10 @@ int construct_read_packet(char** packet,char* file_name,char* mode){
     return packet_size;
 } 
 
-int construct_write_packet(char** packet,char* file_name,char* mode){
+
+//Construct Write Request Packet
+int construct_write_packet(char** packet,char* file_name,char* mode)
+{
     int packet_size = 2 + strlen(file_name) + 1 + strlen(mode) + 1;
     *packet = (char*)malloc(packet_size);
     strcpy(*packet,OPCODE_WRQ);
@@ -18,7 +32,10 @@ int construct_write_packet(char** packet,char* file_name,char* mode){
     return packet_size;
 }  
 
-int construct_data_packet(char** packet,char* block_number,char* data){
+
+//Construct Data Packets
+int construct_data_packet(char** packet,char* block_number,char* data)
+{
     int packet_size = 516;
     *packet = (char*)malloc(packet_size);
     strcpy(*packet,OPCODE_DATA);
@@ -27,7 +44,10 @@ int construct_data_packet(char** packet,char* block_number,char* data){
     return packet_size;
 }
 
-int construct_ack_packet(char** packet,char* block_number){
+
+//Construct ACK Packets
+int construct_ack_packet(char** packet,char* block_number)
+{
     int packet_size = 4;
     *packet = (char*)malloc(packet_size);
     strcpy(*packet,OPCODE_ACK);
@@ -35,7 +55,10 @@ int construct_ack_packet(char** packet,char* block_number){
     return packet_size;
 }
 
-int construct_err_packet(char** packet,char* error_code,char* error_msg){
+
+//Construct Error Packets
+int construct_err_packet(char** packet,char* error_code,char* error_msg)
+{
     int packet_size = 2 + 2 + strlen(error_msg) + 1;
     *packet = (char*)malloc(packet_size);
     strcpy(*packet,OPCODE_ERR);

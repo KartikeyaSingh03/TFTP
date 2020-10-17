@@ -1,6 +1,18 @@
+/*
+
+  This file contains functions required to decode different types of packet
+  to get information from them.
+
+*/
+
+
+
 #include "tftp.h"
 
-struct read_req_packet decode_read_packet(char* packet){
+
+//Decode Read Request Packet 
+struct read_req_packet decode_read_packet(char* packet)
+{
     int i = 2;
     int n = strlen(packet);
     int filename_len=0,mode_len=0;
@@ -22,7 +34,11 @@ struct read_req_packet decode_read_packet(char* packet){
     return data; 
 }
 
-struct write_req_packet decode_write_packet(char* packet){
+
+
+//Decode Write request packet
+struct write_req_packet decode_write_packet(char* packet)
+{
     int i = 2;
     int n = strlen(packet);
     int filename_len=0,mode_len=0;
@@ -44,7 +60,11 @@ struct write_req_packet decode_write_packet(char* packet){
     return data; 
 }
 
-struct data_packet decode_data_packet(char* packet){
+
+
+//Decode Data packet
+struct data_packet decode_data_packet(char* packet)
+{
     struct data_packet data;
     strcpy(data.opcode,"03");
     data.block_number[0] = packet[2];
@@ -54,7 +74,10 @@ struct data_packet decode_data_packet(char* packet){
     return data; 
 }
 
-struct ack_packet decode_ack_packet(char* packet){
+
+//Decode ACK packet
+struct ack_packet decode_ack_packet(char* packet)
+{
     struct ack_packet data;
     strcpy(data.opcode,"04");
     data.block_number[0] = packet[2];
@@ -63,7 +86,10 @@ struct ack_packet decode_ack_packet(char* packet){
     return data; 
 }
 
-struct error_packet decode_error_packet(char* packet){
+
+//Decode Error Packet
+struct error_packet decode_error_packet(char* packet)
+{
     struct error_packet data;
     strcpy(data.opcode,"05");
     data.error_code[0] = packet[2];
