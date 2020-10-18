@@ -162,7 +162,7 @@ int main(int argc,char* argv[])
 				//Construct and Send error packet to client if file by that name is already present on server
 				char* err_pack;
 				int err_len = construct_err_packet(&err_pack,"06",error_codes[6]);
-				printf("Error Encountered : Sending Error Packet \n\n");
+				printf("Error Encountered : Sending Error Packet.... \n\n");
 				n=sendto(sock,err_pack,err_len,0,(struct sockaddr*)&client,length);
 				free(err_pack);
 			}
@@ -194,10 +194,17 @@ int main(int argc,char* argv[])
 			
         }
 
-
+        //Illegal TFTP Operation because initially RRQ or WRQ must be sent to initiate connection
         else
         {
-            printf("%s\n","RRQ/WRQ must be sent before data transfer.\n");
+            //printf("%s\n","RRQ/WRQ must be sent before data transfer.\n");
+
+            //Construct and Send required error packet
+			char* err_pack;
+			int err_len = construct_err_packet(&err_pack,"04",error_codes[4]);
+			printf("Error Encountered : Sending Error Packet..... \n\n");
+			n=sendto(sock,err_pack,err_len,0,(struct sockaddr*)&client,length);
+			free(err_pack);
         }
     }
 

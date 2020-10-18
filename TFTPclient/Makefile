@@ -5,13 +5,13 @@ flags = -g
 
 default: all
 
-all: server client 
+all: client 
 
-server:
-	${CXX} ${flags} -o server ${common} tftpServer.c 
+##server:
+##	${CXX} ${flags} -o server ${common} tftpServer.c 
 
 client: 
 	${CXX} ${flags} -o client ${common} tftpClient.c
 
 clean:
-	rm *.o client server
+	rm *.o client 

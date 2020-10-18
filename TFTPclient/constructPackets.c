@@ -3,6 +3,9 @@
   This file contains functions to construct 5 different types of 
   TFTP Packets according to format given in RFC 1350
 
+  The functions take char** packet as argument in which the constructed packet is stored.
+  The functions return length of the constructed packet.
+
 */
 
 

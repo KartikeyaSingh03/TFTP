@@ -15,6 +15,12 @@ This file contains implementation of TFTP Cient according to RFC 1350.
 		2. Receive File from Server
 		3. NOTE: Error Handling part is implemented in receiveFile() function   
 	
+
+NOTE: 
+
+	1. In case of WRQ request sent to server ==> Server acknowledges with an ACK packet
+	2. In case of RRQ request sent to server ==> Server directly sends DATA packet without acknowledgement
+
 */
 
 
@@ -98,6 +104,7 @@ int main(int argc,char* argv[])
 		recieveFile(sock,&client,file_name);
 	}
 
+
 	//Perform below steps to PUT file on server....
 	else if(strcmp("-p",argv[3]) == 0)
 	{	
@@ -142,6 +149,7 @@ int main(int argc,char* argv[])
             free(rcvd_error.error_msg);
 		}
 	}
+
 
 	//Incorrect format for command line argumnents..
 	else
