@@ -13,6 +13,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/select.h>
+#include<sys/time.h>
+#include<errno.h>
 
 #define OPCODE_RRQ   "01"
 #define OPCODE_WRQ   "02"
@@ -25,6 +27,8 @@
 #define MODE_MAIL     "mail"
 
 #define BUF_SIZE 1024 
+
+#define MAX_TIMEOUT 5
 
 enum connection_type {GET,PUT};
 

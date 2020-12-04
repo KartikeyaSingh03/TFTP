@@ -89,14 +89,13 @@ int main(int argc,char* argv[])
 	//Server is always running and ready to receive incoming requests
     while(1){
 
+    	int n;
+
     	//Receive first incoming packet from client
         bzero(buf,BUF_SIZE);
-		int n = recvfrom(sock,buf,BUF_SIZE,0,(struct sockaddr *)&client,&length);
-		if (n < 0)
-		{
-			printf("recvfrom Error");
-			exit(1);
-		}
+        
+        //Waiting for connection request from client
+		while(recvfrom(sock,buf,BUF_SIZE,0,(struct sockaddr *)&client,&length) < 0);
 
 		//Read Opcode of received packet
         char opcode[3];

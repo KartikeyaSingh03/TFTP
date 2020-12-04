@@ -5,7 +5,10 @@ This file contains functions sendFile() and receiveFile() which are used by clie
 ==> SendFile(): For each block of data perform following steps--
     1. For each block of data, read data into buffer from file.
     2. Then Send the data packet over the network
-    3. Receive ACK for the sent data packet. 
+    3. Wait for the ACK Packet
+    4. If Timeout occurs resend the packet and wait again for ACK
+    5. Receive ACK for the sent data packet. 
+    6. Continue for next block of data 
 
 ==> receiveFile(): Perform below steps till data is being received
     1. Receive the incoming packet
@@ -17,15 +20,19 @@ This file contains functions sendFile() and receiveFile() which are used by clie
           -- Send ACK for received block 
     4. Terminate the connection if length of data is less than 512 i.e. it is last data
        packet of the file.         
+
+==>
  
 */
 
 #include "tftp.h"
 
-void get_block_num(int block_num,char block[]){
-	block[0] = (block_num/10) + '0';
-	block[1] = (block_num%10) + '0';
-	block[2] = '\0';
+void get_block_num(int block_num,char block[])
+{
+    if(block_num > 99)   block_num = (block_num % 99) + 1;
+    block[0] = (block_num/10) + '0';
+    block[1] = (block_num%10) + '0';
+    block[2] = '\0';
 }
 
 void sendFile(int sock,struct sockaddr_in* sender,struct sockaddr_in* reciever,const char* file_name)
@@ -45,6 +52,14 @@ void sendFile(int sock,struct sockaddr_in* sender,struct sockaddr_in* reciever,c
     char* data_pack = NULL;                   
     char* data = (char*)malloc(512);          //Declaring data array dynamically to read data from file
     int length = sizeof(struct sockaddr_in);
+
+
+    //Declaring Variables for timeout implementation
+    struct timeval tv = {0,0};
+    tv.tv_sec = 5;
+    socklen_t optionlength = sizeof(tv);
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, optionlength);
+
 
 
     //Calculating the size of File in bytes
@@ -72,19 +87,58 @@ void sendFile(int sock,struct sockaddr_in* sender,struct sockaddr_in* reciever,c
 
         //Sending data packet
         int n = sendto(sock,data_pack,data_len,0,(struct sockaddr*)reciever,length);
-        free(data_pack);
+        
 
-        //Receiving Acknowledgement for the data packet just sent.
-        bzero(buf,BUF_SIZE);
-        n = recvfrom(sock,buf,BUF_SIZE,0,(struct sockaddr *)sender,&length);
-        if (n < 0)
+        //This counter keeps track of number of times packet is sent continuously on timeout
+        int counter = 0;
+        //Implementing the Timeout 
+        while(1)
         {
-            printf("recvfrom Error\n");
-            exit(1);
-        }
-        struct ack_packet ack = decode_ack_packet(buf);
-        printf("Recieved ACK for Block number: %s\n",ack.block_number);
+            bzero(buf,BUF_SIZE);
+            n = recvfrom(sock,buf,BUF_SIZE,0,(struct sockaddr *)sender,&length);
+
+            //If timeout occurs resend the packet and again wait for ack
+            if((n<0) && ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
+            {
+                //Handling Timeout ==> Sending the packet again
+                int n = sendto(sock,data_pack,data_len,0,(struct sockaddr*)reciever,length);
+                counter = counter + 1;
+            }
+
+            else if (n < 0)
+            {
+                printf("recvfrom Error\n");
+                exit(1);
+            }
+
+            //If no timeout receive ACK packet for data block sent
+            else
+            {
+                //Decoding the received ACK packet and proceeding further to process next packet
+                struct ack_packet ack = decode_ack_packet(buf);
+                printf("Recieved ACK for Block number: %s \n",ack.block_number); 
+                break;
+            }
+
+            //When number of times the timeout occurs exceed MAX_TIMEOUT_LIMIT ==> Premature Termination
+            if(counter > MAX_TIMEOUT)
+            {
+            	char* err_pack;
+                int err_len = construct_err_packet(&err_pack,"00","Timeout Error : Premature Termination");
+                printf("Error Encountered : Sending Error Packet \n\n");
+                n=sendto(sock,err_pack,err_len,0,(struct sockaddr*)&reciever,length);
+                free(err_pack);
+
+                free(data_pack); 
+                free(data);
+                fclose(fp_send);
+
+                return;
+            }
+        }      
     }
+
+    free(data_pack); 
     free(data);
     fclose(fp_send);
 }
@@ -99,7 +153,7 @@ void recieveFile(int sock,struct sockaddr_in* sender,const char* file_name)
     FILE* fp_rec = fopen(file_name,"a");
     if(fp_rec == NULL){
         printf("Unable to open file\n.");
-    }		
+    }       
 
     int length = sizeof(struct sockaddr_in);
 
@@ -128,6 +182,7 @@ void recieveFile(int sock,struct sockaddr_in* sender,const char* file_name)
         //Perform below steps if received packt is data packet
         else
         {
+
             //Decoding the data packet to get the data inside it.
             struct data_packet rcvd_data = decode_data_packet(buf);
 
@@ -146,7 +201,8 @@ void recieveFile(int sock,struct sockaddr_in* sender,const char* file_name)
             if(strlen(rcvd_data.data) < 512){
                 break;
             }
+            
         }
-    }	
-    fclose(fp_rec);		
+    }   
+    fclose(fp_rec);     
 }

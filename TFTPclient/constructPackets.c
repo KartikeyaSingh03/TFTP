@@ -40,7 +40,8 @@ int construct_write_packet(char** packet,char* file_name,char* mode)
 int construct_data_packet(char** packet,char* block_number,char* data)
 {
     int packet_size = 516;
-    *packet = (char*)malloc(packet_size);
+    if(*packet==NULL)   *packet = (char*)malloc(packet_size);
+    bzero(*packet,516);
     strcpy(*packet,OPCODE_DATA);
     strcat(*packet,block_number);
     strcat(*packet,data);
